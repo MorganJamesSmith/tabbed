@@ -137,6 +137,7 @@ static int xerror(Display *dpy, XErrorEvent *ee);
 static void xsettitle(Window w, const char *str);
 
 /* variables */
+static pid_t tabbedpid;
 static int screen;
 static void (*handler[LASTEvent]) (const XEvent *) = {
 	[ButtonPress] = buttonpress,
@@ -1033,6 +1034,7 @@ setup(void)
 
 	win = XCreateSimpleWindow(dpy, root, wx, wy, ww, wh, 0,
 	                          dc.norm[ColFG].pixel, dc.norm[ColBG].pixel);
+
 	XMapRaised(dpy, win);
 	XSelectInput(dpy, win, SubstructureNotifyMask | FocusChangeMask |
 	             ButtonPressMask | ExposureMask | KeyPressMask |
@@ -1058,6 +1060,9 @@ setup(void)
 	XSetWMProperties(dpy, win, NULL, NULL, NULL, 0, size_hint, wmh, NULL);
 	XFree(size_hint);
 	XFree(wmh);
+	XChangeProperty(dpy, win, XInternAtom(dpy, "_NET_WM_PID", False), XA_CARDINAL, 32,
+	                          PropModeReplace, (unsigned char*)&tabbedpid, 1);
+
 
 	XSetWMProtocols(dpy, win, &wmatom[WMDelete], 1);
 
@@ -1266,6 +1271,7 @@ usage(void)
 int
 main(int argc, char *argv[])
 {
+	tabbedpid = getpid();
 	Bool detach = False;
 	int replace = 0;
 	char *pstr;
